@@ -87,8 +87,8 @@
 
 <script>
     const SERVER_URI = "https://shelly-287-eu.shelly.cloud"; 
-    const AUTH_KEY = "NDljZWNldWlkE2DE2D3F5895FDF7F905B584EE616A6ABCB1EB8B3D33A08D34536F84E6F6D8128A8C400AA99712B7";             
-    const DEVICE_ID = "48f6ee8c07a8";            
+    const AUTH_KEY   = "NDljZWNldWlkE2DE2D3F5895FDF7F905B584EE616A6ABCB1EB8B3D33A08D34536F84E6F6D8128A8C400AA99712B7";             
+    const DEVICE_ID  = "48f6ee8c07a8";            
 
     function abrir() {
         const btn = document.getElementById('boton');
@@ -98,10 +98,9 @@
         txt.style.color = "#fbbf24";
         txt.innerText = "Enviando orden...";
 
-        const endpoint = SERVER_URI + "/v2/devices/api/set/switch";
-        const bodyData = "auth_key=" + encodeURIComponent(AUTH_KEY) +
-                         "&id=" + encodeURIComponent(DEVICE_ID) +
-                         "&channel=0&on=true";
+        // En V2 auth_key va en la URL
+        const endpoint = SERVER_URI + "/v2/devices/api/set/switch?auth_key=" + encodeURIComponent(AUTH_KEY);
+        const bodyData = "id=" + encodeURIComponent(DEVICE_ID) + "&channel=0&on=true";
 
         fetch(endpoint, {
             method: "POST",
