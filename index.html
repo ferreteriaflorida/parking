@@ -60,15 +60,17 @@
             transform: scale(0.94);
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
+        .btn-abrir:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
         #mensaje {
             margin-top: 25px;
             font-weight: 600;
             font-size: 15px;
             min-height: 24px;
-            color: #4ade80;
-        }
-        iframe {
-            display: none;
         }
     </style>
 </head>
@@ -78,29 +80,60 @@
     <h2>Puerta de Parking</h2>
     <p>Pulsa el botón para accionar</p>
     
-    <!-- Formulario invisible enviando la orden directamente -->
-    <form action="https://shelly-287-eu.shelly.cloud/v2/devices/api/set/switch" method="POST" target="hidden_frame" onsubmit="ordenEnviada()">
-        <input type="hidden" name="auth_key" value="NDljZWNldWlkE2DE2D3F5895FDF7F905B584EE616A6ABCB1EB8B3D33A08D34536F84E6F6D8128A8C400AA99712B7">
-        <input type="hidden" name="id" value="48f6ee8c07a8">
-        <input type="hidden" name="channel" value="0">
-        <input type="hidden" name="on" value="true">
-        
-        <button type="submit" id="boton" class="btn-abrir">ABRIR</button>
-    </form>
+    <button id="boton" class="btn-abrir" onclick="abrir()">ABRIR</button>
     
     <div id="mensaje"></div>
 </div>
 
-<!-- Marco oculto para recibir la respuesta sin cambiar de página -->
-<iframe name="hidden_frame" id="hidden_frame"></iframe>
-
 <script>
-    function ordenEnviada() {
+    const SERVER_URI = "https://shelly-287-eu.shelly.cloud";
+    const AUTH_KEY   = "NDljZWNldWlkE2DE2D3F5895FDF7F905B584EE616A6ABCB1EB8B3D33A08D34536F84E6F6D8128A8C400AA99712B7";
+    const DEVICE_ID  = "48f6ee8c07a8";
+
+    function abrir() {
+        const btn = document.getElementById('boton');
         const txt = document.getElementById('mensaje');
-        txt.innerText = "✓ Orden enviada a la puerta";
-        setTimeout(function() {
-            txt.innerText = "";
-        }, 4000);
+
+        btn.disabled = true;
+        txt.style.color = "#fbbf24";
+        txt.innerText = "Enviando orden...";
+
+        // Usamos la API /device/relay/control que es la más universal para accionar relés de Shelly
+        const url = `${SERVER_URI}/device/relay/control`;
+
+        const formData = new URLSearchParams();
+        formData.append("auth_key", AUTH_KEY);
+        formData.append("id", DEVICE_ID);
+        formData.append("channel", "0");
+        formData.append("turn", "on");
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: formData.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.isok) {
+                txt.style.color = "#4ade80";
+                txt.innerText = "✓ Puerta accionada";
+            } else {
+                txt.style.color = "#f87171";
+                txt.innerText = "✕ Error en Shelly (Revisa claves)";
+            }
+        })
+        .catch(err => {
+            txt.style.color = "#f87171";
+            txt.innerText = "✕ Error de conexión";
+        })
+        .finally(() => {
+            setTimeout(() => {
+                btn.disabled = false;
+                txt.innerText = "";
+            }, 3000);
+        });
     }
 </script>
 
